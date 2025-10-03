@@ -1,127 +1,132 @@
 <template>
-  <div class="text-black min-h-screen min-w-screen bg-gray-50 flex items-center justify-center p-4">
-    <div class="rounded-xl shadow-lg p-8 w-full max-w-md">
-      <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Kayıt Ol</h2>
-
-      <form @submit.prevent="register" class="space-y-4">
-        <div>
-          <label class="block text-gray-700 mb-2">Ad Soyad</label>
-          <input
-            v-model="form.name"
-            type="text"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            required
-          />
+  <div class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white rounded-lg shadow-md p-8">
+      <h2 class="text-2xl font-bold text-center text-gray-800 mb-8">Kayıt Ol</h2>
+      
+      <!-- v-on:submit.prevent formun sayfa yenilemesini engeller -->
+      <form @submit.prevent="handleRegister">
+        <div class="mb-4">
+          <label for="name" class="block text-sm font-medium text-gray-700">Ad Soyad</label>
+          <input v-model="name" type="text" id="name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
         </div>
 
-        <div>
-          <label class="block text-gray-700 mb-2">Telefon</label>
-          <input
-            v-model="form.phone"
-            type="text"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            placeholder="5551234567"
-            required
-          />
+        <div class="mb-4">
+          <label for="phone" class="block text-sm font-medium text-gray-700">Telefon</label>
+          <input v-model="phone" type="tel" id="phone" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
         </div>
 
-        <div>
-          <label class="block text-gray-700 mb-2">Şifre</label>
-          <input
-            v-model="form.password"
-            type="password"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            required
-          />
+        <div class="mb-4">
+          <label for="password" class="block text-sm font-medium text-gray-700">Şifre</label>
+          <input v-model="password" type="password" id="password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
         </div>
 
-        <div>
-          <label class="block text-gray-700 mb-2">Kurumunuz</label>
-          <input
-            v-model="form.role_name"
-            type="text"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            placeholder="Belediye, Kaymakamlık, vs."
-            required
-          />
+        <div class="mb-4">
+          <label for="institution" class="block text-sm font-medium text-gray-700">Kurumunuz</label>
+          <input v-model="institution" type="text" id="institution" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
         </div>
 
-        <!-- ✅ Belge Yükleme -->
-        <div>
-          <label class="block text-gray-700 mb-2">Kurum Belgesi (PDF/Resim)</label>
-          <input
-            @change="onFileChange"
-            type="file"
-            accept=".pdf,.jpg,.jpeg,.png"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            required
-          />
+        <div class="mb-6">
+          <label for="document" class="block text-sm font-medium text-gray-700">Kurum Belgesi (PDF/Resim)</label>
+          <!-- Dosya seçildiğinde handleFileChange fonksiyonunu çağır -->
+          <input @change="handleFileChange" type="file" id="document" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required>
         </div>
 
-        <button
-          type="submit"
-          class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition"
-          :disabled="loading"
-        >
-          {{ loading ? 'Kayıt olunuyor...' : 'Kayıt Ol' }}
+        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition duration-300" :disabled="isLoading">
+          {{ isLoading ? 'Kaydediliyor...' : 'Kayıt Ol' }}
         </button>
+
+        <p v-if="errorMessage" class="mt-4 text-sm text-center text-red-600 bg-red-100 p-3 rounded-md">
+          {{ errorMessage }}
+        </p>
+
+        <p class="mt-6 text-sm text-center text-gray-600">
+          Zaten hesabın var mı? 
+          <router-link to="/login" class="font-medium text-blue-600 hover:text-blue-500">Giriş yap</router-link>
+        </p>
       </form>
-
-      <p class="mt-6 text-center text-gray-600">
-        Zaten hesabın var mı?
-        <router-link to="/login" class="text-blue-600 hover:underline">Giriş yap</router-link>
-      </p>
-
-      <div v-if="error" class="mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
-        {{ error }}
-      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
-const form = ref({ name: '', phone: '', password: '', role_name: '' })
-const file = ref(null)
-const error = ref('')
-const loading = ref(false)
-const router = useRouter()
+const name = ref('');
+const phone = ref('');
+const password = ref('');
+const institution = ref('');
+const documentFile = ref(null); // Seçilen dosyayı tutmak için
+const isLoading = ref(false);
+const errorMessage = ref('');
+const router = useRouter();
 
-const onFileChange = (e) => {
-  file.value = e.target.files[0]
-}
+// Dosya input'u değiştiğinde bu fonksiyon çalışır
+const handleFileChange = (event) => {
+  documentFile.value = event.target.files[0];
+};
 
-const register = async () => {
-  error.value = ''
-  loading.value = true
+// Kayıt Ol butonuna basıldığında bu fonksiyon çalışır
+const handleRegister = async () => {
+  if (!documentFile.value) {
+    errorMessage.value = 'Lütfen kurum belgenizi seçin.';
+    return;
+  }
 
-  const formData = new FormData()
-  formData.append('action', 'register')
-  formData.append('name', form.value.name)
-  formData.append('phone', form.value.phone)
-  formData.append('password', form.value.password)
-  formData.append('role_name', form.value.role_name)
-  formData.append('document', file.value) // ✅ Belge eklendi
+  isLoading.value = true;
+  errorMessage.value = '';
+
+  // Önce dosyayı sunucuya yükleyeceğiz
+  const formData = new FormData();
+  formData.append('document', documentFile.value);
 
   try {
-    const res = await fetch('http://localhost:8000/api/auth.php', {
+    // 1. ADIM: Dosyayı Yükle
+    let documentPath = '';
+    const uploadRes = await fetch('/api/upload.php', {
       method: 'POST',
-      body: formData
-    })
-    const data = await res.json()
+      body: formData,
+    });
 
-    if (data.success) {
-      alert('Kayıt isteğiniz alındı. Admin onayı bekleniyor.')
-      router.push('/login')
-    } else {
-      error.value = data.error || 'Kayıt başarısız.'
+    const uploadData = await uploadRes.json();
+    if (!uploadData.success) {
+      throw new Error(uploadData.error || 'Dosya yüklenemedi.');
     }
-  } catch (err) {
-    error.value = 'Sunucuya bağlanılamadı.'
+    documentPath = uploadData.filePath; // Yüklenen dosyanın yolunu al
+
+    // 2. ADIM: Tüm form verilerini ve dosya yolunu kaydet
+    const registerRes = await fetch('/api/auth.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        // --- EKLENEN EN ÖNEMLİ SATIR ---
+        action: 'register', // Backend'e ne yapmak istediğimizi söylüyoruz
+        // --- BİTTİ ---
+        name: name.value,
+        phone: phone.value,
+        password: password.value,
+        institution: institution.value,
+        document_path: documentPath, // Sunucudaki dosya yolunu gönderiyoruz
+      }),
+    });
+
+    const registerData = await registerRes.json();
+
+    if (!registerRes.ok) {
+        // Hata durumunda backend'den gelen mesajı göster
+        throw new Error(registerData.error || `Bir hata oluştu: ${registerRes.status}`);
+    }
+
+    // Kayıt başarılıysa kullanıcıyı bilgilendir ve giriş sayfasına yönlendir
+    alert('Kayıt başarılı! Yönetici onayından sonra giriş yapabilirsiniz.');
+    router.push('/login');
+
+  } catch (error) {
+    errorMessage.value = error.message;
   } finally {
-    loading.value = false
+    isLoading.value = false;
   }
-}
+};
 </script>

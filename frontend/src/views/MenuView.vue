@@ -31,7 +31,7 @@
         </button>
       </div>
 
-      <!-- ✅ Bakiye Yükleme Formu -->
+      <!-- Bakiye Yükleme Formu -->
       <div class="mt-8 p-4 bg-gray-100 rounded-lg">
         <h3 class="text-lg font-semibold text-gray-800 mb-3">Bakiye Yükle</h3>
         <div class="flex gap-3">
@@ -50,7 +50,7 @@
         </div>
       </div>
 
-      <!-- ✅ Fiş Geçmişi -->
+      <!-- Fiş Geçmişi -->
       <div class="mt-8 p-4 bg-gray-100 rounded-lg">
         <h3 class="text-lg font-semibold text-gray-800 mb-3">Fiş Geçmişi</h3>
         <table class="min-w-full divide-y divide-gray-200">
@@ -80,16 +80,16 @@ import { useRouter } from 'vue-router'
 
 const menu = ref({ date: 'Yükleniyor...', description: '' })
 const user = ref(JSON.parse(localStorage.getItem('user')))
-const mealPrice = ref(0)
+const mealPrice = ref(0) // Başlangıç değeri 0 olarak kalacak, API'den güncellenecek
 const loading = ref(false)
-const amount = ref(0) // ✅ Yeni: bakiye miktarı
-const ticketHistory = ref([]) // ✅ Yeni: fiş geçmişi
+const amount = ref(0)
+const ticketHistory = ref([])
 const router = useRouter()
 
-// Menüyü yükle
+// Menü açıklamasını yükle
 const loadMenu = async () => {
   try {
-    const res = await fetch('http://localhost:8000/api/menu.php', {
+    const res = await fetch('/api/menu.php', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -101,17 +101,20 @@ const loadMenu = async () => {
   }
 }
 
-// Makam fiyatını al
-const loadRolePrice = async () => {
+// Kullanıcının rolüne göre yemek fiyatını yükle
+const loadMealPrice = async () => {
   try {
-    const res = await fetch('http://localhost:8000/api/roles.php', {
+    const res = await fetch('/api/price.php', {
       credentials: 'include'
-    })
-    const roles = await res.json()
-    const userRole = roles.find(r => r.id === user.value.role_id)
-    mealPrice.value = userRole ? userRole.meal_price : 0
+    });
+    const data = await res.json();
+    if (res.ok && data.price !== undefined) {
+      mealPrice.value = data.price;
+    } else {
+      console.error('Fiyat bilgisi alınamadı:', data.error);
+    }
   } catch (err) {
-    console.error('Makam fiyatı alınamadı')
+    console.error('Yemek fiyatı alınırken bir hata oluştu:', err);
   }
 }
 
@@ -123,13 +126,13 @@ const buyTicket = async () => {
   }
 
   if (mealPrice.value <= 0) {
-    alert('Fiş fiyatı 0 TL olamaz.')
+    alert('Fiş fiyatı 0 TL veya daha az olamaz. Lütfen yönetici ile görüşün.')
     return
   }
 
   loading.value = true
   try {
-    const res = await fetch('http://localhost:8000/api/ticket.php', {
+    const res = await fetch('/api/ticket.php', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -144,7 +147,7 @@ const buyTicket = async () => {
       alert('Fiş başarıyla alındı!')
       user.value.balance = data.new_balance
       localStorage.setItem('user', JSON.stringify(user.value))
-      loadTicketHistory() // ✅ Fiş geçmişi yenilenir
+      loadTicketHistory()
     } else {
       alert(data.error || 'Fiş alınamadı.')
     }
@@ -155,10 +158,10 @@ const buyTicket = async () => {
   }
 }
 
-// ✅ Fiş Geçmişi Yükle
+// Fiş Geçmişini Yükle
 const loadTicketHistory = async () => {
   try {
-    const res = await fetch('http://localhost:8000/api/ticket.php', {
+    const res = await fetch('/api/ticket.php', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -170,7 +173,7 @@ const loadTicketHistory = async () => {
   }
 }
 
-// ✅ Bakiye Yükle
+// Bakiye Yükle
 const loadBalance = async () => {
   if (!amount.value || amount.value <= 0) {
     alert('Geçerli bir tutar girin.')
@@ -178,7 +181,7 @@ const loadBalance = async () => {
   }
 
   try {
-    const res = await fetch('http://localhost:8000/api/balance.php', {
+    const res = await fetch('/api/balance.php', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -187,9 +190,10 @@ const loadBalance = async () => {
     const data = await res.json()
 
     if (data.success) {
-      alert('Bakiye yüklendi!')
+      alert('Bakiye başarıyla yüklendi!')
       user.value.balance = data.new_balance
       localStorage.setItem('user', JSON.stringify(user.value))
+      amount.value = 0; // Input'u temizle
     } else {
       alert(data.error || 'Bakiye yüklenemedi.')
     }
@@ -198,18 +202,20 @@ const loadBalance = async () => {
   }
 }
 
+// Çıkış Yap
 const logout = () => {
   localStorage.removeItem('user')
   router.push('/login')
 }
 
+// Sayfa ilk yüklendiğinde çalışacak fonksiyonlar
 onMounted(() => {
   if (!user.value) {
     router.push('/login')
     return
   }
   loadMenu()
-  loadRolePrice()
-  loadTicketHistory() // ✅ Sayfa yüklendiğinde fiş geçmişi gelir
+  loadMealPrice() // Fiyatı yükle
+  loadTicketHistory()
 })
 </script>
