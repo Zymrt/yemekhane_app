@@ -5,7 +5,6 @@ import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import tailwindcss from '@tailwindcss/vite'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     tailwindcss(),
@@ -17,23 +16,18 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
-
-  // --- YENİ EKLENEN BÖLÜM BAŞLANGICI ---
   server: {
     proxy: {
-      // Frontend'den gelen '/api' ile başlayan tüm istekleri
-      // aşağıdaki adrese yönlendir.
+      // Frontend'den gelen '/api' ile başlayan tüm istekleri yakala
       '/api': {
-        // !! DİKKAT: Bu adresi kendi XAMPP/WAMP sunucu adresinize göre doğrulayın !!
-        // Proje klasörünüz htdocs/yemekhane_app içindeyse bu adres doğrudur.
-        target: 'http://localhost/yemekhane_app/backend', 
+        // Doğrudan XAMPP'deki ana dizine yönlendir.
+        // Bu adres, sizin XAMPP sunucunuzun tam olarak nereye baktığını gösterir.
+        target: 'http://localhost/yemekhane_app',
         changeOrigin: true,
-        // Yönlendirme yaparken /api kısmını istekten kaldırır.
-        // Yani frontend'den /api/auth.php'ye yapılan istek,
-        // backend'e http://localhost/yemekhane_app/backend/auth.php olarak gider.
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        // Gelen isteğin yolunu olduğu gibi koru.
+        // Yani /api/upload.php isteği, backend/api/upload.php'ye gidecek.
+        rewrite: (path) => path.replace(/^\/api/, '/backend/api'),
       },
     }
   }
-  // --- YENİ EKLENEN BÖLÜM SONU ---
 })

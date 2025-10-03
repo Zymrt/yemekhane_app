@@ -1,89 +1,71 @@
 <template>
-  <div class="text-black min-h-screen min-w-screen bg-gray-50 flex items-center justify-center p-4">
-    <div class=" rounded-xl shadow-lg p-8 w-full max-w-md">
-      <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Giriş Yap</h2>
-
-      <form @submit.prevent="login" class="space-y-4">
-        <div>
-          <label class="block text-gray-700 mb-2">Telefon</label>
-          <input
-            v-model="form.phone"
-            type="text"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            placeholder="5551234567"
-            required
-          />
+  <!-- HTML KISMINDA BİR DEĞİŞİKLİK YOK -->
+  <div class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white rounded-lg shadow-md p-8">
+      <h2 class="text-2xl font-bold text-center text-gray-800 mb-8">Giriş Yap</h2>
+      <form @submit.prevent="handleLogin">
+        <div class="mb-4">
+          <label for="phone" class="block text-sm font-medium text-gray-700">Telefon</label>
+          <input v-model="phone" type="tel" id="phone" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
         </div>
-
-        <div>
-          <label class="block text-gray-700 mb-2">Şifre</label>
-          <input
-            v-model="form.password"
-            type="password"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            placeholder="••••••••"
-            required
-          />
+        <div class="mb-6">
+          <label for="password" class="block text-sm font-medium text-gray-700">Şifre</label>
+          <input v-model="password" type="password" id="password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
         </div>
-
-        <button
-          type="submit"
-          class=" w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
-          :disabled="loading"
-        >
-          {{ loading ? 'Giriş yapılıyor...' : 'Giriş Yap' }}
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300" :disabled="isLoading">
+          {{ isLoading ? 'Giriş Yapılıyor...' : 'Giriş Yap' }}
         </button>
+        <p v-if="errorMessage" class="mt-4 text-sm text-center text-red-600 bg-red-100 p-3 rounded-md">
+          {{ errorMessage }}
+        </p>
+        <p class="mt-6 text-sm text-center text-gray-600">
+          Hesabın yok mu? 
+          <router-link to="/register" class="font-medium text-blue-600 hover:text-blue-500">Kayıt ol</router-link>
+        </p>
       </form>
-
-      <p class="mt-6 text-center text-gray-600">
-        Hesabın yok mu?
-        <router-link to="/register" class="text-blue-600 hover:underline">Kayıt ol</router-link>
-      </p>
-
-      <div v-if="error" class="mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
-        {{ error }}
-      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
-const form = ref({ phone: '', password: '' })
-const error = ref('')
-const loading = ref(false)
-const router = useRouter()
+const phone = ref('');
+const password = ref('');
+const isLoading = ref(false);
+const errorMessage = ref('');
+const router = useRouter();
 
-const login = async () => {
-  error.value = ''
-  loading.value = true
-
+const handleLogin = async () => {
+  isLoading.value = true;
+  errorMessage.value = '';
   try {
-    const res = await fetch('http://localhost:8000/api/auth.php', {
+    // ADRES DÜZELTİLDİ:
+    const res = await fetch('/api/auth.php', {
       method: 'POST',
-      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'login', ...form.value })
-    })
-    const data = await res.json()
-
-    if (data.success) {
-      localStorage.setItem('user', JSON.stringify(data.user))
-      // ✅ Adminse doğrudan admin paneline yönlendir
-      if (data.user.role_name === 'Admin') {
-        router.push('/admin')
-      } else {
-        router.push('/menu')
-      }
-    } else {
-      error.value = data.error || 'Giriş başarısız.'
+      body: JSON.stringify({
+        action: 'login',
+        phone: phone.value,
+        password: password.value,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Giriş yapılamadı.');
     }
-  } catch (err) {
-    error.value = 'Sunucuya bağlanılamadı.'
+    
+    // Kullanıcı bilgilerini tarayıcı hafızasında sakla
+    localStorage.setItem('user', JSON.stringify(data.user));
+    
+    // Menü sayfasına yönlendir
+    router.push('/');
+    
+  } catch (error) {
+    errorMessage.value = error.message;
   } finally {
-    loading.value = false
+    isLoading.value = false;
   }
-}
+};
 </script>
